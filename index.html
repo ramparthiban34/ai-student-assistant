@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Student Assistant</title>
+  <meta name="description" content="A simple AI Student Assistant web app for summarizing topics, making quizzes, planning study sessions, and tracking tasks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef2ff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #dbe3f0;
+      --primary: #2563eb;
+      --primary-2: #1d4ed8;
+      --accent: #8b5cf6;
+      --success: #16a34a;
+      --warning: #ea580c;
+      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      --radius: 18px;
+    }
+    [data-theme="dark"] {
+      --bg: #0b1020;
+      --surface: #121932;
+      --surface-2: #1a2342;
+      --text: #eef2ff;
+      --muted: #a5b4cc;
+      --border: #273252;
+      --primary: #60a5fa;
+      --primary-2: #3b82f6;
+      --accent: #a78bfa;
+      --success: #4ade80;
+      --warning: #fb923c;
+      --shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, sans-serif;
+      background: linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 70%, var(--surface-2)));
+      color: var(--text);
+    }
+    .container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20; backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: 72px; gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; }
+    .logo {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: grid; place-items: center; color: white; box-shadow: var(--shadow);
+      font-family: "Space Grotesk", sans-serif; font-size: 1.1rem;
+    }
+    .top-actions { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      padding: 12px 16px; border-radius: 14px; cursor: pointer; font-weight: 600;
+      transition: .2s ease; box-shadow: var(--shadow);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--primary); border-color: var(--primary); color: white; }
+    .hero { padding: 44px 0 24px; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.2fr .8fr; gap: 24px; align-items: stretch;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-card { padding: 28px; }
+    .eyebrow {
+      display: inline-flex; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 999px;
+      background: var(--surface-2); color: var(--primary); font-size: .9rem; font-weight: 700;
+      margin-bottom: 16px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 { font-family: "Space Grotesk", sans-serif; font-size: clamp(2rem, 3vw, 3.6rem); line-height: 1.05; }
+    p { color: var(--muted); line-height: 1.65; }
+    .hero-actions, .quick-grid, .grid-2, .stats { display: grid; gap: 14px; }
+    .hero-actions { grid-template-columns: repeat(2, max-content); margin-top: 20px; }
+    .stats { grid-template-columns: repeat(3, 1fr); margin-top: 26px; }
+    .stat { padding: 16px; border-radius: 16px; background: var(--surface-2); }
+    .stat strong { display: block; font-size: 1.35rem; color: var(--text); }
+    .panel { padding: 22px; }
+    .panel h3 { font-size: 1.1rem; }
+    .quick-grid { grid-template-columns: repeat(2, 1fr); }
+    .quick-btn {
+      text-align: left; padding: 16px; border: 1px solid var(--border); border-radius: 16px;
+      background: transparent; color: var(--text); cursor: pointer;
+    }
+    .quick-btn span { display: block; color: var(--muted); font-size: .9rem; margin-top: 6px; }
+    .section { padding: 10px 0 28px; }
+    .grid-2 { grid-template-columns: 1.1fr .9fr; align-items: start; }
+    .tool-card { padding: 24px; }
+    textarea, input, select {
+      width: 100%; margin-top: 8px; margin-bottom: 16px; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit;
+    }
+    textarea { min-height: 170px; resize: vertical; }
+    label { display: block; font-weight: 600; margin-top: 8px; }
+    .output {
+      min-height: 250px; padding: 18px; background: var(--bg); border: 1px dashed var(--border);
+      border-radius: 16px; white-space: pre-wrap; color: var(--text);
+    }
+    .task-list { display: grid; gap: 12px; margin-top: 14px; }
+    .task {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+      padding: 14px 16px; border-radius: 16px; background: var(--bg); border: 1px solid var(--border);
+    }
+    .task small { color: var(--muted); display: block; margin-top: 6px; }
+    .badge {
+      display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: .8rem; font-weight: 700;
+      background: color-mix(in srgb, var(--primary) 12%, var(--surface)); color: var(--primary);
+    }
+    .footer { padding: 18px 0 40px; color: var(--muted); font-size: .95rem; }
+    .muted { color: var(--muted); }
+    .hidden { display: none; }
+    @media (max-width: 900px) {
+      .hero-grid, .grid-2, .quick-grid, .stats { grid-template-columns: 1fr; }
+      .hero-actions { grid-template-columns: 1fr; }
+      .topbar-inner { align-items: flex-start; padding: 12px 0; flex-direction: column; }
+      .top-actions { width: 100%; flex-wrap: wrap; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <div>AI Student Assistant</div>
+          <div class="muted" style="font-size:.9rem;">Simple web app for study support</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" id="themeToggle" aria-label="Toggle theme">Toggle theme</button>
+        <button class="btn primary" onclick="document.getElementById('workspace').scrollIntoView({behavior:'smooth'})">Open workspace</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="card hero-card">
+          <div class="eyebrow">Student Productivity + Mock AI</div>
+          <h1>Plan, summarize, quiz, and organize your study work in one app.</h1>
+          <p>This project is a simple AI-style student assistant built using HTML, CSS, and JavaScript. It helps students create topic summaries, generate quiz questions, and track tasks through a clean interface that can be hosted on GitHub Pages.</p>
+          <div class="hero-actions">
+            <button class="btn primary" onclick="fillDemo()">Load demo content</button>
+            <button class="btn" onclick="downloadNotes()">Download notes</button>
+          </div>
+          <div class="stats">
+            <div class="stat"><strong>3</strong><span class="muted">Study tools included</span></div>
+            <div class="stat"><strong>100%</strong><span class="muted">Static and GitHub Pages ready</span></div>
+            <div class="stat"><strong>1</strong><span class="muted">Single-file easy deployment</span></div>
+          </div>
+        </div>
+        <aside class="card panel">
+          <h3>Quick actions</h3>
+          <p>Use the built-in helpers to simulate an AI student assistant experience.</p>
+          <div class="quick-grid">
+            <button class="quick-btn" onclick="setMode('summary')">Summarize topic<span>Turn long text into short notes.</span></button>
+            <button class="quick-btn" onclick="setMode('quiz')">Generate quiz<span>Create questions from a topic.</span></button>
+            <button class="quick-btn" onclick="setMode('planner')">Build study plan<span>Split work into timed tasks.</span></button>
+            <button class="quick-btn" onclick="addSampleTasks()">Add sample tasks<span>Populate the task manager.</span></button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="workspace">
+      <div class="container grid-2">
+        <div class="card tool-card">
+          <span class="badge" id="currentModeBadge">Mode: Summary</span>
+          <h2 style="margin-top:12px;">Study workspace</h2>
+          <p>Paste a topic, paragraph, or concept below and choose what you want the assistant to do.</p>
+
+          <label for="mode">Assistant mode</label>
+          <select id="mode" onchange="handleModeChange()">
+            <option value="summary">Summary generator</option>
+            <option value="quiz">Quiz generator</option>
+            <option value="planner">Study planner</option>
+          </select>
+
+          <label for="topic">Topic or content</label>
+          <textarea id="topic" placeholder="Example: Explain battery management systems in electric vehicles."></textarea>
+
+          <label for="details">Extra instruction</label>
+          <input id="details" type="text" placeholder="Example: Make it easy for exam revision." />
+
+          <button class="btn primary" onclick="generateOutput()">Generate</button>
+        </div>
+
+        <div class="card tool-card">
+          <h2>Assistant output</h2>
+          <p>The generated result appears here. This app uses rule-based JavaScript logic to simulate useful AI-style student help without needing a backend API.</p>
+          <div class="output" id="outputBox">Your generated summary, quiz, or study plan will appear here.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid-2">
+        <div class="card tool-card">
+          <h2>Task manager</h2>
+          <p>Add tasks for assignments, revision sessions, or project work.</p>
+          <label for="taskName">Task title</label>
+          <input id="taskName" type="text" placeholder="Example: Revise AI unit 2" />
+          <label for="taskTime">Deadline or time</label>
+          <input id="taskTime" type="text" placeholder="Example: Tomorrow 7 PM" />
+          <button class="btn primary" onclick="addTask()">Add task</button>
+          <div class="task-list" id="taskList"></div>
+        </div>
+
+        <div class="card tool-card">
+          <h2>How this app helps</h2>
+          <p>Student assistant apps commonly focus on scheduling, homework support, and study organization, which is why this project includes a planner, quick study tools, and task management in a single page. GitHub Pages can host static HTML, CSS, and JavaScript projects directly, making this style of app easy to publish for academic submission.</p>
+          <div class="task-list">
+            <div class="task"><div><strong>Summary tool</strong><small>Converts long study input into shorter revision notes.</small></div></div>
+            <div class="task"><div><strong>Quiz tool</strong><small>Creates basic self-test questions for revision practice.</small></div></div>
+            <div class="task"><div><strong>Planner tool</strong><small>Breaks a topic into study blocks and milestones.</small></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">Built as a simple academic submission project. You can upload this folder to a public GitHub repository and host it using GitHub Pages.</div>
+  </footer>
+
+  <script>
+    const modeEl = document.getElementById('mode');
+    const topicEl = document.getElementById('topic');
+    const detailsEl = document.getElementById('details');
+    const outputBox = document.getElementById('outputBox');
+    const taskList = document.getElementById('taskList');
+    const badge = document.getElementById('currentModeBadge');
+    const html = document.documentElement;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    function setMode(mode) {
+      modeEl.value = mode;
+      handleModeChange();
+      document.getElementById('workspace').scrollIntoView({behavior:'smooth'});
+    }
+
+    function handleModeChange() {
+      const labels = {
+        summary: 'Mode: Summary',
+        quiz: 'Mode: Quiz',
+        planner: 'Mode: Study Planner'
+      };
+      badge.textContent = labels[modeEl.value];
+    }
+
+    function cleanSentences(text) {
+      return text.split(/[.!?]\s+/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function generateSummary(text, details) {
+      const sentences = cleanSentences(text);
+      const first = sentences.slice(0, 3).map((s, i) => `${i + 1}. ${s}`).join('\n');
+      return `Quick Summary\n\nMain idea:\n${sentences[0] || 'No enough text provided.'}\n\nKey points:\n${first || 'Add more content to summarize.'}\n\nRevision tip:\n${details || 'Review this topic once now and once again after 24 hours.'}`;
+    }
+
+    function generateQuiz(text) {
+      const words = text.replace(/[^a-zA-Z0-9 ]/g, '').split(/\s+/).filter(w => w.length > 4);
+      const unique = [...new Set(words)].slice(0, 5);
+      if (!unique.length) return 'Quiz Generator\n\nPlease enter a longer topic to generate questions.';
+      return 'Quiz Generator\n\n' + unique.map((word, i) => `${i + 1}. What is the role of ${word} in this topic?`).join('\n') + '\n\nBonus: Write a 3-line explanation in your own words.';
+    }
+
+    function generatePlan(text, details) {
+      const title = text.split(/[.!?\n]/)[0] || 'Your topic';
+      return `Study Plan\n\nTopic: ${title}\n\n1. Read the concept for 20 minutes.\n2. Write short notes for 15 minutes.\n3. Solve 5 revision questions in 20 minutes.\n4. Review mistakes for 10 minutes.\n5. Final recap for 5 minutes.\n\nTarget: ${details || 'Complete in one focused study session.'}`;
+    }
+
+    function generateOutput() {
+      const text = topicEl.value.trim();
+      const details = detailsEl.value.trim();
+      if (!text) {
+        outputBox.textContent = 'Please enter a topic or paragraph first.';
+        return;
+      }
+      if (modeEl.value === 'summary') outputBox.textContent = generateSummary(text, details);
+      if (modeEl.value === 'quiz') outputBox.textContent = generateQuiz(text);
+      if (modeEl.value === 'planner') outputBox.textContent = generatePlan(text, details);
+    }
+
+    function addTask() {
+      const name = document.getElementById('taskName').value.trim();
+      const time = document.getElementById('taskTime').value.trim();
+      if (!name || !time) return;
+      const item = document.createElement('div');
+      item.className = 'task';
+      item.innerHTML = `<div><strong>${name}</strong><small>${time}</small></div><button class="btn" onclick="this.parentElement.remove()">Done</button>`;
+      taskList.appendChild(item);
+      document.getElementById('taskName').value = '';
+      document.getElementById('taskTime').value = '';
+    }
+
+    function addSampleTasks() {
+      const samples = [
+        ['Revise AI basics', 'Today, 8:00 PM'],
+        ['Prepare project viva points', 'Tomorrow, 6:30 PM'],
+        ['Complete assignment draft', 'Friday, 5:00 PM']
+      ];
+      samples.forEach(([name, time]) => {
+        const item = document.createElement('div');
+        item.className = 'task';
+        item.innerHTML = `<div><strong>${name}</strong><small>${time}</small></div><button class="btn" onclick="this.parentElement.remove()">Done</button>`;
+        taskList.appendChild(item);
+      });
+    }
+
+    function fillDemo() {
+      topicEl.value = 'Battery management systems in electric vehicles monitor voltage, current, and temperature to improve safety, performance, and battery life. They balance cells, estimate state of charge, and protect the battery pack during charging and discharging.';
+      detailsEl.value = 'Make it useful for exam revision.';
+      modeEl.value = 'summary';
+      handleModeChange();
+      generateOutput();
+    }
+
+    function downloadNotes() {
+      const blob = new Blob([outputBox.textContent], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'study-output.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    handleModeChange();
+  </script>
+</body>
+</html>
