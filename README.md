@@ -14,8 +14,7 @@ A simple AI Student Assistant web app built using HTML, CSS, and JavaScript.
 - `index.html` - Main application file
 
 ## How to Run Locally
-1. Download or clone the repository.
-2. Open `index.html` in your browser.
+1. Open `index.html` in your browser.
 
 ## How to Host on GitHub Pages
 1. Create a new **public** repository on GitHub.
@@ -27,16 +26,8 @@ A simple AI Student Assistant web app built using HTML, CSS, and JavaScript.
 7. Save the settings.
 8. Wait for GitHub to generate your live site link.
 
-Your hosted URL will look similar to:
+hosted URL will look similar to:
 `https://your-username.github.io/your-repository-name/`
-
-## Suggested Repository Name
-`ai-student-assistant`
-
-## Submission Links
-Submit both:
-- Repository link
-- Hosted GitHub Pages link
 
 ## Note
 This project uses frontend JavaScript logic to simulate AI-style academic assistance in a simple way suitable for student demonstration and submission.
